@@ -1,0 +1,35 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
+
+# Initialize a Spark session
+spark = SparkSession.builder.appName("DronePilotsSalaries").getOrCreate()
+
+# Ingest the CSV file with drone pilots' shift details
+file_path = "path/to/drone_pilots_shifts.csv"
+pilots_df = spark.read.csv(file_path, header=True, inferSchema=True)
+
+# Display the ingested data
+pilots_df.show()
+
+# Data Cleaning and Preprocessing (if needed)
+# For example, handling missing values or data transformations
+
+# Filter relevant columns for finance team
+finance_df = pilots_df.select("pilot_id", "shift_start_time", "shift_end_time", "hours_worked")
+
+# Calculate total hours worked per pilot
+finance_df = finance_df.withColumn("total_hours_worked", col("shift_end_time").cast("long") - col("shift_start_time").cast("long"))
+
+# Calculate salary based on an hourly rate (replace with actual salary calculation logic)
+hourly_rate = 25  # Example hourly rate in dollars
+finance_df = finance_df.withColumn("salary", col("total_hours_worked") * hourly_rate)
+
+# Display the prepared data for finance
+finance_df.show()
+
+# Save the processed data to a new CSV file or any preferred output format
+output_path = "path/to/processed_drone_pilot_salaries"
+finance_df.write.csv(output_path, header=True)
+
+# Stop the Spark session
+spark.stop()
